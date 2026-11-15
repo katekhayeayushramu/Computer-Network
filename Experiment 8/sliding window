@@ -1,0 +1,97 @@
+#include <stdio.h>
+
+#define MAX_FRAMES 50
+
+void sender(int frames[], int size, int window_size);
+void receiver(int frames[], int start, int count);
+
+int main()
+{
+    int n, window_size;
+    int frames[MAX_FRAMES];
+
+    printf("Sliding Window Protocol (Go-Back-N)\n");
+
+    printf("Enter number of frames (max %d): ", MAX_FRAMES);
+    if (scanf("%d", &n) != 1 || n <= 0 || n > MAX_FRAMES) {
+        printf("Invalid number of frames.\n");
+        return 0;
+    }
+
+    printf("Enter window size: ");
+    if (scanf("%d", &window_size) != 1 ||
+        window_size <= 0 || window_size > n) {
+        printf("Invalid window size.\n");
+        return 0;
+    }
+
+    // Assign sequence numbers
+    for (int i = 0; i < n; i++) {
+        frames[i] = i;
+    }
+
+    sender(frames, n, window_size);
+
+    return 0;
+}
+
+// Sender function
+void sender(int frames[], int size, int window_size)
+{
+    int base = 0;
+    char choice;
+
+    while (base < size) {
+
+        int count = window_size;
+
+        if (base + count > size) {
+            count = size - base;
+        }
+
+        printf("\nSender window: ");
+
+        for (int i = base; i < base + count; i++) {
+            printf("[%d]", frames[i]);
+        }
+
+        do {
+            printf("\nSending frames...\n");
+
+            for (int i = base; i < base + count; i++) {
+                printf("Send frame: %d\n", frames[i]);
+            }
+
+            printf("\nReceiver side:\n");
+            receiver(frames, base, count);
+
+            printf("\nDid all frames receive correctly? (y/n): ");
+            scanf(" %c", &choice);
+
+            if (choice == 'n' || choice == 'N') {
+                printf("Go-Back-N: Resending from frame %d\n",
+                       frames[base]);
+            }
+
+        } while (choice == 'n' || choice == 'N');
+
+        if (choice == 'y' || choice == 'Y') {
+            base += count;
+        }
+        else {
+            printf("Invalid choice. Please enter y or n.\n");
+            // Retry this window
+        }
+    }
+
+    printf("\nAll frames sent successfully!\n");
+}
+
+// Receiver function
+void receiver(int frames[], int start, int count)
+{
+    for (int i = start; i < start + count; i++) {
+        printf("Received frame: %d, sending ACK: %d\n",
+               frames[i], frames[i] + 1);
+    }
+}
